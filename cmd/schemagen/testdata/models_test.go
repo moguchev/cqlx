@@ -1,0 +1,95 @@
+//go:build all || integration
+// +build all integration
+
+package schemagentest
+
+import (
+	"flag"
+	"strings"
+	"testing"
+	"time"
+
+	gocqlv2 "github.com/apache/cassandra-gocql-driver/v2"
+	"github.com/google/go-cmp/cmp"
+
+	"github.com/moguchev/cqlx"
+	"github.com/moguchev/cqlx/qb"
+)
+
+var flagCluster = flag.String("cluster", "127.0.0.1", "a comma-separated list of host:port or host tuples")
+
+func TestModelLoad(t *testing.T) {
+	session, err := cqlx.WrapSession(gocqlv2.NewCluster(strings.Split(*flagCluster, ",")...).CreateSession())
+	if err != nil {
+		t.Fatal("create session:", err.Error())
+	}
+	defer session.Close()
+
+	// Keyspace, types and table are created at `schemagen_test.go` at `createTestSchema`
+
+	song := SongsStruct{
+		Id:       gocqlv2.TimeUUID(),
+		Title:    "title",
+		Album:    "album",
+		Artist:   "artist",
+		Duration: gocqlv2.Duration{Nanoseconds: int64(5 * time.Minute)},
+		Tags:     []string{"tag1", "tag2"},
+		Data:     []byte("data"),
+	}
+
+	err = qb.Insert("schemagen.songs").
+		Columns("id", "title", "album", "artist", "duration", "tags", "data").
+		Query(session).
+		BindStruct(&song).
+		Exec()
+	if err != nil {
+		t.Fatal("failed to insert song:", err.Error())
+	}
+
+	loadedSong := SongsStruct{}
+	err = qb.Select("schemagen.songs").
+		Columns("id", "title", "album", "artist", "duration", "tags", "data").
+		Where(qb.Eq("id")).
+		Query(session).
+		BindMap(map[string]any{"id": song.Id}).
+		Get(&loadedSong)
+	if err != nil {
+		t.Fatal("failed to select song:", err)
+	}
+	if diff := cmp.Diff(song, loadedSong); diff != "" {
+		t.Error("loaded song is different from inserted song:", diff)
+	}
+
+	pl := PlaylistsStruct{
+		Id:     gocqlv2.TimeUUID(),
+		Title:  "title",
+		Album:  AlbumUserType{Name: "album", Songwriters: []string{"songwriter1", "songwriter2"}},
+		Artist: "artist",
+		SongId: gocqlv2.TimeUUID(),
+	}
+
+	err = qb.Insert("schemagen.playlists").
+		Columns("id", "title", "album", "artist", "song_id").
+		Query(session).
+		BindStruct(&pl).
+		Exec()
+	if err != nil {
+		t.Fatal("failed to insert playlist:", err.Error())
+	}
+
+	loadedPl := PlaylistsStruct{}
+
+	err = qb.Select("schemagen.playlists").
+		Columns("id", "title", "album", "artist", "song_id").
+		Where(qb.Eq("id")).
+		Query(session).
+		BindMap(map[string]any{"id": pl.Id}).
+		Get(&loadedPl)
+	if err != nil {
+		t.Fatal("failed to select playlist:", err.Error())
+	}
+
+	if diff := cmp.Diff(pl, loadedPl); diff != "" {
+		t.Error("loaded playlist is different from inserted song:", diff)
+	}
+}

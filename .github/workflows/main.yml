@@ -1,0 +1,44 @@
+name: Build
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  unit:
+    name: Unit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.25'
+      - uses: actions/cache@v5
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('go.mod', 'cmd/schemagen/testdata/go.mod') }}
+      - run: make get-deps && make get-tools
+      - run: make check
+      - run: make test-unit
+
+  integration:
+    name: Integration (Cassandra ${{ matrix.cassandra }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        cassandra: ["4.1", "5.0"]
+    env:
+      CASSANDRA_IMAGE: cassandra:${{ matrix.cassandra }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.25'
+      - uses: actions/cache@v5
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('go.mod', 'cmd/schemagen/testdata/go.mod') }}
+      - run: make get-deps && make get-tools
+      - run: make test
