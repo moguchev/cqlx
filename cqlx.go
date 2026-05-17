@@ -1,0 +1,63 @@
+// Copyright (C) 2017 ScyllaDB
+// Use of this source code is governed by a ALv2-style
+// license that can be found in the LICENSE file.
+//
+// Modifications Copyright (C) 2026 Leonid Chenskii. Apache-2.0.
+
+package cqlx
+
+import (
+	"errors"
+	"fmt"
+	"reflect"
+
+	gocqlv2 "github.com/apache/cassandra-gocql-driver/v2"
+	"github.com/scylladb/go-reflectx"
+)
+
+// structOnlyError returns an error appropriate for type when a non-scannable
+// struct is expected but something else is given.
+func structOnlyError(t reflect.Type) error {
+	if isStruct := t.Kind() == reflect.Struct; !isStruct {
+		return fmt.Errorf("expected a struct but got %s", t.Kind())
+	}
+
+	if isUnmarshaller := reflect.PointerTo(t).Implements(unmarshallerInterface); isUnmarshaller {
+		return fmt.Errorf("expected a struct but the provided struct type %s implements gocqlv2.Unmarshaler", t.Name())
+	}
+
+	if isUDTUnmarshaller := reflect.PointerTo(t).Implements(udtUnmarshallerInterface); isUDTUnmarshaller {
+		return fmt.Errorf("expected a struct but the provided struct type %s implements gocqlv2.UDTUnmarshaler", t.Name())
+	}
+
+	if isAutoUDT := reflect.PointerTo(t).Implements(autoUDTInterface); isAutoUDT {
+		return fmt.Errorf("expected a struct but the provided struct type %s implements cqlx.UDT", t.Name())
+	}
+
+	return fmt.Errorf("expected a struct, but struct %s has no exported fields", t.Name())
+}
+
+// reflect helpers
+
+var (
+	unmarshallerInterface    = reflect.TypeOf((*gocqlv2.Unmarshaler)(nil)).Elem()
+	udtUnmarshallerInterface = reflect.TypeOf((*gocqlv2.UDTUnmarshaler)(nil)).Elem()
+	autoUDTInterface         = reflect.TypeOf((*UDT)(nil)).Elem()
+)
+
+func baseType(t reflect.Type, expected reflect.Kind) (reflect.Type, error) {
+	t = reflectx.Deref(t)
+	if t.Kind() != expected {
+		return nil, fmt.Errorf("expected %s but got %s", expected, t.Kind())
+	}
+	return t, nil
+}
+
+func missingFields(transversals [][]int) (field int, err error) {
+	for i, t := range transversals {
+		if len(t) == 0 {
+			return i, errors.New("missing field")
+		}
+	}
+	return 0, nil
+}

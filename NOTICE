@@ -1,0 +1,6 @@
+cqlx is a derivative work of github.com/scylladb/gocqlx
+(commit 6317746a1376f5aa687fb7732c177b1f53d8b665), licensed under Apache 2.0.
+
+Modifications Copyright (C) 2026 Leonid Chenskii.
+
+This project is not affiliated with ScyllaDB.

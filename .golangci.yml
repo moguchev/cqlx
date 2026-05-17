@@ -1,0 +1,76 @@
+version: "2"
+
+formatters:
+  enable:
+    - goimports
+
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/moguchev/cqlx
+    golines:
+      max-len: 120
+    gofumpt:
+      extra-rules: true
+
+linters:
+  exclusions:
+    rules:
+      - path: '(.+)_test\.go'
+        text: "fieldalignment"
+        linters:
+          - govet
+
+  default: none
+  enable:
+    - nolintlint
+    - errcheck
+    - gocritic
+    - goheader
+    - govet
+    - ineffassign
+    - lll
+    - misspell
+    - predeclared
+    - revive
+    - staticcheck
+    - thelper
+    - tparallel
+    - unused
+    - forbidigo
+  settings:
+    revive:
+      rules:
+        - name: package-comments
+          disabled: true
+    govet:
+      enable-all: true
+      disable:
+        - shadow
+    errcheck:
+      check-blank: false
+    gocognit:
+      min-complexity: 50
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - performance
+        - style
+      disabled-checks:
+        - commentedOutCode
+        - evalOrder
+        - hugeParam
+        - importShadow
+        - yodaStyleExpr
+        - whyNoLint
+    lll:
+      line-length: 180
+    nolintlint:
+      allow-no-explanation: [ golines ]
+      require-explanation: true
+      require-specific: true
+
+run:
+  build-tags:
+    - integration
+    - all
