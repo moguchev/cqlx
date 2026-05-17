@@ -77,15 +77,30 @@ func main() {
 
 ## Compatibility
 
-| Database         | Supported       |
-| ---------------- | --------------- |
-| Cassandra 4.1.x  | yes (CI matrix) |
-| Cassandra 5.0.x  | yes (CI matrix) |
-| ScyllaDB         | not tested      |
+Every release is exercised by the [Build workflow](.github/workflows/main.yml) against the
+matrix below. A `✓` means both the unit suite (`make test-unit`) and the integration suite
+(`make test`, `-tags all`) pass on the listed configuration.
 
-For Scylla, use the upstream [`scylladb/gocqlx`](https://github.com/scylladb/gocqlx) — that's what cqlx
-is forked from. cqlx exists because gocqlx requires `replace github.com/gocql/gocql => github.com/scylladb/gocql`,
-which is incompatible with the upstream Apache driver.
+Overall CI status:
+[![Build](https://github.com/moguchev/cqlx/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/moguchev/cqlx/actions/workflows/main.yml?query=branch%3Amain)
+
+| Cassandra image | Driver                             | Go   | OS             | CI job                                                                                                            |
+| --------------- | ---------------------------------- | ---- | -------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `cassandra:4.1` | `apache/cassandra-gocql-driver/v2` | 1.25 | ubuntu-latest  | [Integration (Cassandra 4.1)](https://github.com/moguchev/cqlx/actions/workflows/main.yml?query=branch%3Amain)    |
+| `cassandra:5.0` | `apache/cassandra-gocql-driver/v2` | 1.25 | ubuntu-latest  | [Integration (Cassandra 5.0)](https://github.com/moguchev/cqlx/actions/workflows/main.yml?query=branch%3Amain)    |
+| ScyllaDB *      | `apache/cassandra-gocql-driver/v2` | —    | —              | not tested                                                                                                        |
+
+\* For Scylla, use the upstream [`scylladb/gocqlx`](https://github.com/scylladb/gocqlx) — that's what cqlx
+is forked from. cqlx exists because gocqlx requires
+`replace github.com/gocql/gocql => github.com/scylladb/gocql`, which is incompatible with the
+upstream Apache driver.
+
+To run the matrix locally:
+
+```bash
+CASSANDRA_IMAGE=cassandra:4.1 make test
+CASSANDRA_IMAGE=cassandra:5.0 make test
+```
 
 ## Relationship to gocqlx
 

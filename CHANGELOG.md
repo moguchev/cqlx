@@ -6,6 +6,11 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
+## [0.1.0] - 2026-05-17
+
+First public release. Initial port of `scylladb/gocqlx` onto
+`apache/cassandra-gocql-driver/v2`, no `replace` directive required downstream.
+
 ### Added
 
 - Initial port of [scylladb/gocqlx](https://github.com/scylladb/gocqlx) onto
@@ -50,3 +55,5 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Cassandra 4.1.x and 5.0.x (CI matrix). ScyllaDB is not in the matrix; use
   upstream gocqlx there.
+
+[0.1.0]: https://github.com/moguchev/cqlx/releases/tag/v0.1.0
