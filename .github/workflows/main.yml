@@ -33,6 +33,8 @@ jobs:
       CASSANDRA_IMAGE: cassandra:${{ matrix.cassandra }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
       - uses: actions/setup-go@v6
         with:
           go-version: '1.25'
@@ -41,4 +43,14 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('go.mod', 'cmd/schemagen/testdata/go.mod') }}
       - run: make get-deps && make get-tools
-      - run: make test
+      - if: matrix.cassandra != '5.0'
+        run: make test
+      - if: matrix.cassandra == '5.0'
+        run: make test-coverage
+      - if: matrix.cassandra == '5.0'
+        name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.out
+          fail_ci_if_error: false

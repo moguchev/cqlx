@@ -36,6 +36,15 @@ make stop-cassandra
 - The CI job runs both unit and integration matrices (Cassandra 4.1 + 5.0) —
   expect to fix red CI before review.
 
+### Running the integration suite
+
+Always go through `make test` or `make test-coverage` — not `go test -tags all
+./...` directly. The `cqlxtest` harness drops and re-creates a single shared
+keyspace (`cqlx_test`) in each test binary's `init`; running packages
+concurrently makes them race for the keyspace and wipe each other's tables.
+The make targets serialise package execution (`-p 1`) so the race can't happen.
+See the `TODO` in `cqlxtest/cqlxtest.go` if you want to remove this footgun.
+
 ## API compatibility
 
 cqlx's public API tracks [scylladb/gocqlx](https://github.com/scylladb/gocqlx)

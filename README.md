@@ -1,6 +1,7 @@
 # cqlx
 
 [![Build](https://github.com/moguchev/cqlx/actions/workflows/main.yml/badge.svg)](https://github.com/moguchev/cqlx/actions/workflows/main.yml)
+[![codecov](https://codecov.io/gh/moguchev/cqlx/graph/badge.svg)](https://codecov.io/gh/moguchev/cqlx)
 [![GoDoc](https://pkg.go.dev/badge/github.com/moguchev/cqlx)](https://pkg.go.dev/github.com/moguchev/cqlx)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 

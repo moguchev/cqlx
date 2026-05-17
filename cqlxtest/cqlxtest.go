@@ -31,6 +31,12 @@ var (
 	flagTimeout      = flag.Duration("gocqlv2.timeout", 5*time.Second, "sets the connection `timeout` for all operations")
 )
 
+// initOnce is per-process, so each test binary drops+creates the shared
+// keyspace exactly once. Running multiple packages concurrently (e.g.
+// `go test ./...` without `-p 1`) makes them race for the same keyspace and
+// wipe each other's tables. Use `make test` / `make test-coverage`.
+// TODO(release-after-v0.1.0): make keyspace name unique per package
+// (e.g. `cqlx_test_<hash>`) so parallel `go test ./...` is safe.
 var initOnce sync.Once
 
 // CreateSession creates a new cqlx session from flags.

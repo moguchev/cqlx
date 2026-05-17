@@ -70,6 +70,15 @@ test-unit:
 	@echo "==> Running unit tests (no docker, no integration tag)..."
 	@go test -count=1 -cover -race ./...
 
+.PHONY: test-coverage
+test-coverage: start-cassandra
+	@echo "==> Running tests with coverage profile..."
+	# -p 1: cqlxtest shares one keyspace across all packages and races if run
+	# in parallel. See cqlxtest/cqlxtest.go's initOnce comment.
+	@go test -cpu $(GOTEST_CPU) -p 1 -count=1 -race -tags all \
+		-coverprofile=coverage.out -covermode=atomic -coverpkg=./... \
+		./...
+
 .PHONY: bench
 bench:
 	@go test -cpu $(GOTEST_CPU) -tags all -run=XXX -bench=. -benchmem ./...
